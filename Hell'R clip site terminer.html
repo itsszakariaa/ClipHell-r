@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hell'R</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, orange, white);
+            font-family: Arial, sans-serif;
+        }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background-color: #87CEEB;
+            border: 4px solid #333;
+            overflow: hidden;
+        }
+
+        #character {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            width: 40px;
+            height: 60px;
+            transition: left 0.5s ease;
+        }
+
+        .pixel-character {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            position: relative;
+        }
+
+        .pixel-character::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 25%;
+            width: 50%;
+            height: 20px;
+            background-color: #FFE4C4;
+            border-radius: 50%;
+        }
+
+        .door {
+            position: absolute;
+            bottom: 50px;
+            width: 80px;
+            height: 120px;
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            border: 4px solid #4A2410;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .door:hover {
+            transform: scale(1.1);
+        }
+
+        .door::before {
+            content: '';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            width: 10px;
+            height: 10px;
+            background-color: #FFD700;
+            border-radius: 50%;
+        }
+
+        #door1 { left: 200px; }
+        #door2 { left: 400px; }
+        #door3 { left: 600px; }
+
+        .floor {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 50px;
+            background-color: #228B22;
+        }
+
+        #videoContainer {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        #message {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .success-effect {
+            animation: success 1s;
+        }
+
+        @keyframes success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .comment-section {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .comment-section textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #comments-display {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .comment {
+            background-color: white;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="message">Essayez une autre porte !</div>
+        <div id="character">
+            <div class="pixel-character"></div>
+        </div>
+        <div class="door" id="door1" onclick="tryDoor(1)"></div>
+        <div class="door" id="door2" onclick="tryDoor(2)"></div>
+        <div class="door" id="door3" onclick="tryDoor(3)"></div>
+        <div class="floor"></div>
+    </div>
+
+    <div id="videoContainer">
+        <video id="videoPlayer" controls width="640">
+            <source src="MASTER_HELLR_4K.mp4" type="video/mp4">
+            Votre navigateur ne supporte pas la lecture de vidéos.
+        </video>
+        
+        <div class="comment-section">
+            <h3>Laissez un commentaire</h3>
+            <form id="commentForm" onsubmit="addComment(event)">
+                <textarea id="commentText" placeholder="Écrivez votre commentaire ici..." required></textarea>
+                <button type="submit" class="submit-btn">Envoyer</button>
+            </form>
+            <div id="comments-display"></div>
+        </div>
+    </div>
+
+    <script>
+        const correctDoor = Math.floor(Math.random() * 3) + 1;
+        const character = document.getElementById('character');
+        const message = document.getElementById('message');
+
+        function tryDoor(doorNumber) {
+            // Déplacer le personnage
+            character.style.left = (doorNumber === 1 ? '160px' : doorNumber === 2 ? '360px' : '560px');
+
+            setTimeout(() => {
+                if (doorNumber === correctDoor) {
+                    // Bonne porte
+                    document.querySelector(`#door${doorNumber}`).classList.add('success-effect');
+                    setTimeout(() => {
+                        document.getElementById('videoContainer').style.display = 'block';
+                        document.getElementById('game-container').style.display = 'none';
+                    }, 1000);
+                } else {
+                    // Mauvaise porte
+                    document.querySelector(`#door${doorNumber}`).classList.add('shake');
+                    message.style.display = 'block';
+                    message.textContent = 'Essayez une autre porte !';
+                    setTimeout(() => {
+                        document.querySelector(`#door${doorNumber}`).classList.remove('shake');
+                        message.style.display = 'none';
+                        character.style.left = '50px';
+                    }, 1500);
+                }
+            }, 500);
+        }
+
+        function addComment(event) {
+            event.preventDefault();
+            const commentText = document.getElementById('commentText').value;
+            const commentElement = document.createElement('div');
+            commentElement.className = 'comment';
+            commentElement.textContent = commentText;
+            document.getElementById('comments-display').insertBefore(commentElement, document.getElementById('comments-display').firstChild);
+            document.getElementById('commentForm').reset();
+        }
+    </script>
+</body>
+
+        <!-- Section pour les liens de streaming -->
+        <div style="margin-top: 20px; display: flex; gap: 20px; align-items: center;">
+            <a href="https://deezer.page.link/kQ9wYaZRx8gZdeEZ6" target="_blank">
+                <img src="Deezer Logo.png" alt="Deezer" style="width: 50px; height: auto;">
+            </a>
+            <a href="https://music.apple.com/fr/artist/hellr/1584725253" target="_blank">
+                <img src="Apple_Music-Logo.wine.png" alt="Apple Music" style="width: 50px; height: auto;">
+            </a>
+            <a href="https://open.spotify.com/intl-fr/artist/2unlrpUvJpqOduOy3PpoPv?si=vZKXtiTQQoSUOmU7Irrblw" target="_blank">
+                <img src="Spotify Logo.png" alt="Spotify" style="width: 50px; height: auto;">
+            </a>
+        </div>
+    </body>
+<div style="margin-top: 20px; text-align: center;">
+    <a href="https://votre-lien-vers-le-clipe.com" target="_blank" 
+       style="text-decoration: none; font-size: 20px; color: #000; font-weight: bold;">
+        Clipe Hell'R
+    </a>
+</div>
+</body>
+</html>
